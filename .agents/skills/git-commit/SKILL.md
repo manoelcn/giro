@@ -13,7 +13,7 @@ Faça commits no Git que sigam a especificação [Conventional Commits 1.0.0](ht
 ## Idioma
 
 - Escreva em **português brasileiro** o resumo, o corpo e o valor dos rodapés comuns (por exemplo, o texto depois de `Refs:`).
-- Mantenha em **inglês** os elementos que fazem parte da especificação, porque ferramentas os leem como estão: o `tipo` (`feat`, `fix`, `docs` etc.), o token `BREAKING CHANGE` e os tokens dos rodapés (`Closes`, `Refs`, `Co-authored-by` etc.).
+- Mantenha em **inglês** os elementos que fazem parte da especificação, porque ferramentas os leem como estão: o `tipo` (`feat`, `fix`, `docs` etc.), o token `BREAKING CHANGE` e os tokens dos rodapés (`Closes`, `Refs` etc.).
 - O escopo segue o nome do módulo ou da pasta como aparece no código. Não o traduza.
 - Se o repositório usar outro idioma nas mensagens ou tiver uma regra própria sobre o idioma, siga a regra do repositório (veja o passo 1).
 - Use acentos e cedilha normalmente. Salve a mensagem em UTF-8.
@@ -34,6 +34,7 @@ Faça commits no Git que sigam a especificação [Conventional Commits 1.0.0](ht
 - Comece o resumo com letra minúscula, a menos que a primeira palavra seja um nome próprio ou uma sigla.
 - No corpo, diga o que mudou e por quê.
 - Escreva cada rodapé como `Token: valor` ou `Token #valor`, por exemplo `Refs: #456` ou `Closes #123`. O Conventional Commits aceita as duas formas, mas o Git lê como trailer apenas `Token: valor`. No token, use `-` no lugar de espaço.
+- Não adicione o trailer `Co-authored-by` às mensagens de commit.
 
 ## Tipos
 

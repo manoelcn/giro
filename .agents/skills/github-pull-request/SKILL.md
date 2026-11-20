@@ -27,6 +27,7 @@ Esta skill orienta o agente a preparar e criar Pull Requests completos no GitHub
 3. **Elabore o Título e a Descrição do PR:**
    - **Título:** Crie uma frase curta, clara e no imperativo ou descrevendo a entrega (ex.: `Implementa cancelamento de reserva com cálculo de multa` ou `feat(auth): adiciona autenticação via OAuth2`). Respeite Conventional Commits se o histórico do repositório seguir esse padrão.
    - **Corpo:** Preencha todas as seções do template encontrado (ou do Template Padrão), substituindo comentários por informações concretas e marcando `[x]` apenas nos itens confirmados. Inclua `Closes #<numero>` se houver Issue vinculada.
+   - Não inclua informações ou trailers de coautoria no título ou no corpo do PR.
 
 4. **Crie o Pull Request:**
    - **Com acesso ao shell/terminal e `gh` autenticado:** Execute a criação do PR passando título, corpo e branch base (ex.: `gh pr create --base main --title "<titulo>" --body "<corpo>"`). Se o usuário pedir revisão antes de abrir, apresente a prévia e aguarde confirmação.
