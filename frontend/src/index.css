@@ -1,0 +1,49 @@
+@import '@astryxdesign/core/reset.css';
+@import '@astryxdesign/core/astryx.css';
+
+.page {
+  margin-inline: auto;
+  max-width: 960px;
+  width: 100%;
+}
+
+.native-control {
+  background-color: var(--color-background-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-element);
+  color: var(--color-text-primary);
+  font: inherit;
+  min-height: var(--size-element-md);
+  padding-inline: var(--spacing-2);
+  width: 100%;
+}
+
+.form-actions {
+  justify-content: flex-end;
+}
+
+.feedback {
+  border-radius: var(--radius-element);
+  padding: var(--spacing-3) var(--spacing-4);
+}
+
+.feedback-error {
+  background-color: var(--color-error);
+  color: var(--color-on-error);
+}
+
+.feedback-success {
+  background-color: var(--color-success);
+  color: var(--color-on-success);
+}
+
+.quote-total {
+  border-block-start: var(--border-width) solid var(--color-border);
+  font-weight: var(--font-weight-semibold);
+  padding-block-start: var(--spacing-2);
+}
+
+.reservation-result {
+  border-block-end: var(--border-width) solid var(--color-border);
+  padding-block: var(--spacing-3);
+}

@@ -61,6 +61,7 @@ cover/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+test_db.sqlite3
 
 # Flask stuff:
 instance/
@@ -221,3 +222,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Node.js / Vite
+node_modules/
+coverage/
+.env*
+!.env.example
+
+# Local editor and temporary files
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/
