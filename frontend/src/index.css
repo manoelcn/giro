@@ -47,3 +47,43 @@
   border-block-end: var(--border-width) solid var(--color-border);
   padding-block: var(--spacing-3);
 }
+
+.fleet-nav {
+  border-block-end: var(--border-width) solid var(--color-border);
+  padding-block-end: var(--spacing-2);
+}
+
+.fleet-nav-link {
+  border-radius: var(--radius-element);
+  color: var(--color-text-secondary);
+  padding: var(--spacing-2) var(--spacing-3);
+  text-decoration: none;
+}
+
+.fleet-nav-link:hover,
+.fleet-nav-link.is-active {
+  background-color: var(--color-background-muted);
+  color: var(--color-text-primary);
+}
+
+.fleet-nav-link:focus-visible {
+  outline: var(--border-width) solid var(--color-accent);
+  outline-offset: var(--spacing-0-5);
+}
+
+.fleet-action-link {
+  align-self: flex-start;
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+  text-underline-offset: var(--spacing-1);
+}
+
+.fleet-action-link:focus-visible {
+  outline: var(--border-width) solid var(--color-accent);
+  outline-offset: var(--spacing-0-5);
+}
+
+.fleet-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}

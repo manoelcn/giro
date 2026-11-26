@@ -4,7 +4,7 @@ import { Text } from '@astryxdesign/core/Text'
 import { VStack } from '@astryxdesign/core/VStack'
 
 interface PageProps {
-  eyebrow: string
+  eyebrow?: string
   title: string
   description: string
   children: ReactNode
@@ -20,9 +20,11 @@ export function Page({ eyebrow, title, description, children }: PageProps) {
   return (
     <VStack as="section" className="page" gap={4}>
       <VStack as="header" className="page-heading" gap={1}>
-        <Text as="p" color="accent" type="label">
-          {eyebrow}
-        </Text>
+        {eyebrow && (
+          <Text as="p" color="accent" type="label">
+            {eyebrow}
+          </Text>
+        )}
         <Heading level={1}>{title}</Heading>
         <Text as="p" color="secondary">
           {description}
