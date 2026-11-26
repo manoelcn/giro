@@ -376,6 +376,7 @@ class BaseCatalogApiTests(APITestCase):
             '/api/customers/customers',
             '/api/customers/insurances',
         )
+        writable_paths = {'/api/fleet/vehicles', '/api/fleet/branches'}
         for path in paths:
             response = self.client.get(path)
             self.assertEqual(response.status_code, 200, path)
@@ -384,7 +385,7 @@ class BaseCatalogApiTests(APITestCase):
             self.assertEqual(len(response.data['results']), 1, path)
             self.assertEqual(
                 self.client.post(path, {}, format='json').status_code,
-                405,
+                400 if path in writable_paths else 405,
                 path,
             )
 

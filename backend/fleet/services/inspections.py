@@ -10,12 +10,14 @@ class InspectionService:
         inspection_type: str,
         km: int,
         damages: Decimal = Decimal('0.00'),
+        damage_description: str = '',
     ) -> Inspection:
-        return Inspection.objects.create(
+        return Inspection.register(
             rental_id=rental_id,
             inspection_type=inspection_type,
-            mileage=km,
+            km=km,
             damages=damages,
+            damage_description=damage_description,
         )
 
     def get(self, rental_id: int, inspection_type: str) -> Inspection | None:
