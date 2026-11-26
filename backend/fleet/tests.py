@@ -13,11 +13,14 @@ from fleet.models import (
     Branch,
     Car,
     Inspection,
+    Maintenance,
     Motorcycle,
     UtilityVehicle,
     Vehicle,
 )
 from fleet.services import InspectionService, VehicleService
+from rentals.models import Rental, Reservation
+from django.utils import timezone
 
 
 class VehicleServiceTests(TestCase):
@@ -42,11 +45,20 @@ class VehicleServiceTests(TestCase):
         )
         self.service = VehicleService()
 
-    def test_rental_terms_use_fixed_values_and_vehicle_requirements(self):
+    def test_rental_terms_use_vehicle_values_and_requirements(self):
         terms = self.service.get_rental_terms(self.vehicle.pk)
 
-        self.assertEqual(terms.daily_rate, Decimal('120.00'))
-        self.assertEqual(terms.minimum_deposit, Decimal('300.00'))
+        self.assertEqual(terms.daily_rate, Decimal('999.00'))
+        self.assertEqual(terms.minimum_deposit, Decimal('999.00'))
+        self.assertEqual(terms.required_license_category, 'B')
+        self.assertEqual(terms.minimum_age, 21)
+        self.assertEqual(terms.status, Vehicle.Status.AVAILABLE)
+
+    def test_vehicle_model_exposes_its_rental_terms(self):
+        terms = self.vehicle.get_rental_terms()
+
+        self.assertEqual(terms.daily_rate, Decimal('999.00'))
+        self.assertEqual(terms.minimum_deposit, Decimal('999.00'))
         self.assertEqual(terms.required_license_category, 'B')
         self.assertEqual(terms.minimum_age, 21)
         self.assertEqual(terms.status, Vehicle.Status.AVAILABLE)
@@ -76,6 +88,228 @@ class InspectionServiceTests(TestCase):
         self.assertEqual(result.pk, saved.pk)
         self.assertEqual(result.mileage, 1200)
         self.assertEqual(result.damages, Decimal('250.00'))
+
+    def test_entry_inspection_flags_damage_and_sends_vehicle_to_maintenance(self):
+        branch = Branch.objects.create(
+            name='Norte',
+            address='Rua Um, 10',
+            city='Campinas',
+            state='SP',
+        )
+        vehicle = Car.objects.create(
+            plate='DEF4G56',
+            model='Hatch',
+            year=2025,
+            branch=branch,
+        )
+        now = timezone.now()
+        reservation = Reservation.objects.create(
+            customer_id=1,
+            vehicle_id=vehicle.pk,
+            pickup_branch_id=branch.pk,
+            return_branch_id=branch.pk,
+            starts_at=now,
+            expected_return_at=now + timezone.timedelta(days=1),
+            daily_rate_snapshot=Decimal('120.00'),
+            quoted_total=Decimal('120.00'),
+            first_day_amount_snapshot=Decimal('120.00'),
+        )
+        rental = Rental.objects.create(reservation=reservation)
+
+        inspection = InspectionService().register(
+            rental.pk,
+            Inspection.InspectionType.ENTRY,
+            1200,
+            Decimal('250.00'),
+            'Risco na porta',
+        )
+
+        vehicle.refresh_from_db()
+        maintenance = Maintenance.objects.get(vehicle=vehicle)
+        self.assertTrue(inspection.has_damage)
+        self.assertEqual(vehicle.status, Vehicle.Status.MAINTENANCE)
+        self.assertEqual(vehicle.mileage, 1200)
+        self.assertEqual(maintenance.reason, 'Risco na porta')
+
+
+class FleetManagementApiTests(APITestCase):
+    def setUp(self):
+        self.branch = Branch.objects.create(
+            name='Leste',
+            address='Rua Dois, 20',
+            city='Santos',
+            state='SP',
+        )
+
+    def test_availability_only_returns_available_vehicles_without_period_conflicts(self):
+        now = timezone.now()
+        starts_at = now + timezone.timedelta(days=2)
+        expected_return_at = starts_at + timezone.timedelta(days=3)
+        reserved = Car.objects.create(
+            plate='GHI7J89',
+            model='Sedan',
+            year=2025,
+            branch=self.branch,
+        )
+        available = Car.objects.create(
+            plate='KLM1N23',
+            model='Wagon',
+            year=2025,
+            branch=self.branch,
+        )
+        unavailable = Car.objects.create(
+            plate='PQR4S56',
+            model='SUV',
+            year=2025,
+            status=Vehicle.Status.MAINTENANCE,
+            branch=self.branch,
+        )
+        Reservation.objects.create(
+            customer_id=1,
+            vehicle_id=reserved.pk,
+            pickup_branch_id=self.branch.pk,
+            return_branch_id=self.branch.pk,
+            starts_at=starts_at,
+            expected_return_at=expected_return_at,
+            daily_rate_snapshot=Decimal('120.00'),
+            quoted_total=Decimal('360.00'),
+            first_day_amount_snapshot=Decimal('120.00'),
+        )
+
+        response = self.client.get(
+            '/api/fleet/availability',
+            {
+                'starts_at': starts_at.isoformat(),
+                'expected_return_at': expected_return_at.isoformat(),
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item['id'] for item in response.data['results']], [available.pk])
+        self.assertNotIn(unavailable.pk, [item['id'] for item in response.data['results']])
+
+    def test_vehicle_crud_creates_subtype_and_updates_vehicle(self):
+        response = self.client.post(
+            '/api/fleet/vehicles',
+            {
+                'vehicle_type': 'CAR',
+                'plate': 'TUV7W89',
+                'model': 'Compacto',
+                'year': 2026,
+                'branch': self.branch.pk,
+                'doors': 2,
+                'trunk_capacity_liters': 250,
+                'daily_rate': '95.00',
+                'deposit_amount': '200.00',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 201)
+        vehicle_id = response.data['id']
+        self.assertEqual(response.data['doors'], 2)
+        self.assertEqual(response.data['daily_rate'], '95.00')
+        update = self.client.patch(
+            f'/api/fleet/vehicles/{vehicle_id}',
+            {'model': 'Compacto atualizado'},
+            format='json',
+        )
+        self.assertEqual(update.status_code, 200)
+        self.assertEqual(update.data['model'], 'Compacto atualizado')
+        self.assertEqual(self.client.delete(f'/api/fleet/vehicles/{vehicle_id}').status_code, 204)
+
+    def test_branch_crud(self):
+        response = self.client.post(
+            '/api/fleet/branches',
+            {
+                'name': 'Oeste',
+                'address': 'Rua Três, 30',
+                'city': 'Jundiaí',
+                'state': 'SP',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 201)
+        branch_id = response.data['id']
+        update = self.client.patch(
+            f'/api/fleet/branches/{branch_id}',
+            {'city': 'Louveira'},
+            format='json',
+        )
+        self.assertEqual(update.status_code, 200)
+        self.assertEqual(update.data['city'], 'Louveira')
+        self.assertEqual(self.client.delete(f'/api/fleet/branches/{branch_id}').status_code, 204)
+
+    def test_inspection_registration_updates_vehicle_and_records_damage(self):
+        vehicle = Car.objects.create(
+            plate='XYZ8A90',
+            model='Hatch',
+            year=2025,
+            branch=self.branch,
+        )
+        now = timezone.now()
+        reservation = Reservation.objects.create(
+            customer_id=1,
+            vehicle_id=vehicle.pk,
+            pickup_branch_id=self.branch.pk,
+            return_branch_id=self.branch.pk,
+            starts_at=now,
+            expected_return_at=now + timezone.timedelta(days=1),
+            daily_rate_snapshot=Decimal('120.00'),
+            quoted_total=Decimal('120.00'),
+            first_day_amount_snapshot=Decimal('120.00'),
+        )
+        rental = Rental.objects.create(reservation=reservation)
+
+        response = self.client.post(
+            '/api/fleet/inspections',
+            {
+                'rental_id': rental.pk,
+                'inspection_type': Inspection.InspectionType.ENTRY,
+                'mileage': 1250,
+                'damages': '250.00',
+                'damage_description': 'Risco na porta',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(response.data['has_damage'])
+        vehicle.refresh_from_db()
+        self.assertEqual(vehicle.status, Vehicle.Status.MAINTENANCE)
+        self.assertEqual(vehicle.mileage, 1250)
+
+    def test_maintenance_can_be_started_and_released(self):
+        vehicle = Car.objects.create(
+            plate='UVW3X45',
+            model='Utilitário',
+            year=2025,
+            branch=self.branch,
+        )
+
+        response = self.client.post(
+            '/api/fleet/maintenance',
+            {
+                'vehicle_id': vehicle.pk,
+                'reason': 'Revisão programada',
+                'mileage': 5000,
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 201)
+        maintenance_id = response.data['id']
+        vehicle.refresh_from_db()
+        self.assertEqual(vehicle.status, Vehicle.Status.MAINTENANCE)
+        self.assertEqual(vehicle.mileage, 5000)
+
+        released = self.client.post(f'/api/fleet/maintenance/{maintenance_id}/release')
+
+        self.assertEqual(released.status_code, 200)
+        vehicle.refresh_from_db()
+        self.assertEqual(vehicle.status, Vehicle.Status.AVAILABLE)
+        self.assertIsNotNone(released.data['completed_at'])
 
 
 class BaseSeedCommandTests(APITestCase):
