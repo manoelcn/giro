@@ -80,6 +80,12 @@ export function ReturnPage({ rentalId }: ReturnPageProps) {
       eyebrow={`Locação #${rentalId}`}
       title="Devolução e finalização"
     >
+      <a
+        className="fleet-action-link"
+        href={`/fleet/inspections?rentalId=${encodeURIComponent(rentalId)}&type=ENTRY`}
+      >
+        Registrar vistoria de entrada
+      </a>
       <form onSubmit={handleReturn}>
         <VStack gap={4}>
           <Grid columns={{ minWidth: 240, max: 2 }} gap={4}>

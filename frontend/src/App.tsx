@@ -10,6 +10,7 @@ import { AppShell } from "@astryxdesign/core/AppShell";
 import { TopNav, TopNavHeading, TopNavItem } from "@astryxdesign/core/TopNav";
 
 import { CustomerRoutes } from "./modules/customers/routes";
+import { FleetRoutes } from "./modules/fleet/routes";
 import { RentalRoutes } from "./modules/rentals/routes";
 
 type InternalLinkProps = ComponentPropsWithoutRef<"a"> & { href?: string };
@@ -68,12 +69,19 @@ function ApplicationShell() {
             isSelected={pathname.startsWith("/customers")}
             label="Clientes"
           />
+          <TopNavItem
+            as={InternalLink}
+            href="/fleet/vehicles"
+            isSelected={pathname.startsWith("/fleet")}
+            label="Frota"
+          />
         </TopNav>
       }
       variant="surface"
     >
       <Routes>
         <Route element={<CustomerRoutes />} path="/customers/*" />
+        <Route element={<FleetRoutes />} path="/fleet/*" />
         <Route element={<RentalRoutes />} path="*" />
       </Routes>
     </AppShell>

@@ -43,6 +43,12 @@ export function PickupPage({ rentalId }: PickupPageProps) {
       eyebrow={`Locação #${rentalId}`}
       title="Retirada do veículo"
     >
+      <a
+        className="fleet-action-link"
+        href={`/fleet/inspections?rentalId=${encodeURIComponent(rentalId)}&type=EXIT`}
+      >
+        Registrar vistoria de saída
+      </a>
       <form onSubmit={handleSubmit}>
         <VStack gap={4}>
           <Grid columns={{ minWidth: 240, max: 2 }} gap={4}>
