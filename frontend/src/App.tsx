@@ -1,14 +1,21 @@
-import type { ComponentPropsWithoutRef } from 'react'
-import { BrowserRouter, Link, useLocation } from 'react-router-dom'
-import { AppShell } from '@astryxdesign/core/AppShell'
-import { TopNav, TopNavHeading, TopNavItem } from '@astryxdesign/core/TopNav'
+import type { ComponentPropsWithoutRef } from "react";
+import {
+  BrowserRouter,
+  Link,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
+import { AppShell } from "@astryxdesign/core/AppShell";
+import { TopNav, TopNavHeading, TopNavItem } from "@astryxdesign/core/TopNav";
 
-import { RentalRoutes } from './modules/rentals/routes'
+import { CustomerRoutes } from "./modules/customers/routes";
+import { RentalRoutes } from "./modules/rentals/routes";
 
-type InternalLinkProps = ComponentPropsWithoutRef<'a'> & { href?: string }
+type InternalLinkProps = ComponentPropsWithoutRef<"a"> & { href?: string };
 
-function InternalLink({ href = '/reservations', ...props }: InternalLinkProps) {
-  return <Link to={href} {...props} />
+function InternalLink({ href = "/reservations", ...props }: InternalLinkProps) {
+  return <Link to={href} {...props} />;
 }
 
 function App() {
@@ -16,11 +23,11 @@ function App() {
     <BrowserRouter>
       <ApplicationShell />
     </BrowserRouter>
-  )
+  );
 }
 
 function ApplicationShell() {
-  const { pathname } = useLocation()
+  const { pathname } = useLocation();
 
   return (
     <AppShell
@@ -40,28 +47,37 @@ function ApplicationShell() {
           <TopNavItem
             as={InternalLink}
             href="/reservations"
-            isSelected={pathname === '/reservations'}
+            isSelected={pathname === "/reservations"}
             label="Reservas"
           />
           <TopNavItem
             as={InternalLink}
             href="/reservations/new"
-            isSelected={pathname === '/reservations/new'}
+            isSelected={pathname === "/reservations/new"}
             label="Nova reserva"
           />
           <TopNavItem
             as={InternalLink}
             href="/rentals"
-            isSelected={pathname.startsWith('/rentals')}
+            isSelected={pathname.startsWith("/rentals")}
             label="Locações"
+          />
+          <TopNavItem
+            as={InternalLink}
+            href="/customers"
+            isSelected={pathname.startsWith("/customers")}
+            label="Clientes"
           />
         </TopNav>
       }
       variant="surface"
     >
-      <RentalRoutes />
+      <Routes>
+        <Route element={<CustomerRoutes />} path="/customers/*" />
+        <Route element={<RentalRoutes />} path="*" />
+      </Routes>
     </AppShell>
-  )
+  );
 }
 
-export default App
+export default App;

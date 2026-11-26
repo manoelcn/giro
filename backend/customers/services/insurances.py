@@ -9,5 +9,5 @@ class InsuranceService:
         insurance_id: int,
         damage_value: Decimal,
     ) -> Decimal:
-        insurance = Insurance.objects.get(pk=insurance_id)
-        return min(damage_value, insurance.deductible)
+        insurance = Insurance.objects.get(pk=insurance_id).get_real()
+        return insurance.calculate_customer_damage_cost(damage_value)
